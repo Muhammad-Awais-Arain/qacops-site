@@ -170,7 +170,8 @@ function Hero() {
 function Tape() {
   const row = [...tools, ...tools];
   return (
-    <div className="tape" aria-label={`Tools we work with: ${tools.join(", ")}`}>
+    <div className="tape">
+      <p className="sr-only">Tools we work with: {tools.join(", ")}</p>
       <div className="tape-track" aria-hidden="true">
         {[0, 1].map((copy) => (
           <div className="tape-set" key={copy}>
@@ -370,20 +371,33 @@ function Faq() {
 }
 
 function Audit() {
-  const [sent, setSent] = useState(false);
-  const onSubmit = (e) => {
+  const [state, setState] = useState("idle"); // idle, sending, sent
+  const [error, setError] = useState("");
+  const [sentTo, setSentTo] = useState("");
+
+  const onSubmit = async (e) => {
     e.preventDefault();
-    const data = new FormData(e.currentTarget);
-    const subject = `Free QA audit for ${data.get("company") || "our team"}`;
-    const body = [
-      `Name: ${data.get("name")}`,
-      `Company: ${data.get("company")}`,
-      `Repo or product link: ${data.get("link")}`,
-      "",
-      data.get("pain"),
-    ].join("\n");
-    window.location.href = `mailto:${contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    setSent(true);
+    const form = Object.fromEntries(new FormData(e.currentTarget));
+    setError("");
+    setState("sending");
+    try {
+      const res = await fetch(contact.endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || `The form couldn't send. Email us at ${contact.email} and we'll pick it up from there.`);
+        setState("idle");
+        return;
+      }
+      setSentTo(form.email);
+      setState("sent");
+    } catch {
+      setError(`The form couldn't reach us. Email us at ${contact.email} and we'll pick it up from there.`);
+      setState("idle");
+    }
   };
 
   return (
@@ -399,34 +413,49 @@ function Audit() {
             Rather write it yourself? <a href={`mailto:${contact.email}`}>{contact.email}</a>
           </p>
         </div>
-        {sent ? (
+        {state === "sent" ? (
           <div className="audit-form audit-sent" role="status">
             <Badge size={40} />
-            <h3>Your request is ready to send</h3>
-            <p>Your email app should have opened with everything filled in. Hit send there and we'll reply within one working day.</p>
-            <button className="btn btn-night" onClick={() => setSent(false)}>Edit the request</button>
+            <h3>Request sent</h3>
+            <p>
+              We've emailed a confirmation to {sentTo}. A person on our team reads every request and replies within one
+              working day.
+            </p>
+            <button className="btn btn-night" onClick={() => setState("idle")}>Send another request</button>
           </div>
         ) : (
           <form className="audit-form" onSubmit={onSubmit}>
             <div className="field-row">
               <label>
                 <span>Your name</span>
-                <input name="name" required autoComplete="name" />
+                <input name="name" required autoComplete="name" maxLength={80} />
               </label>
               <label>
                 <span>Company</span>
-                <input name="company" required autoComplete="organization" />
+                <input name="company" required autoComplete="organization" maxLength={80} />
               </label>
             </div>
             <label>
+              <span>Work email</span>
+              <input name="email" type="email" required autoComplete="email" maxLength={120} />
+            </label>
+            <label>
               <span>Repo or product link</span>
-              <input name="link" type="url" placeholder="https://" />
+              <input name="link" inputMode="url" placeholder="yourproduct.com" maxLength={300} />
             </label>
             <label>
               <span>What keeps breaking?</span>
-              <textarea name="pain" rows="4" placeholder="Checkout fails after every release, our suite is flaky, nobody owns QA…" />
+              <textarea name="pain" rows="4" maxLength={3000} placeholder="Checkout fails after every release, our suite is flaky, nobody owns QA…" />
             </label>
-            <button type="submit" className="btn btn-night">Request my free audit</button>
+            {/* Hidden from people; bots that fill every field get quietly ignored. */}
+            <label className="sr-only" aria-hidden="true">
+              Website
+              <input name="website" tabIndex={-1} autoComplete="off" />
+            </label>
+            {error && <p className="form-error" role="alert">{error}</p>}
+            <button type="submit" className="btn btn-night" disabled={state === "sending"}>
+              {state === "sending" ? "Sending…" : "Request my free audit"}
+            </button>
           </form>
         )}
       </div>

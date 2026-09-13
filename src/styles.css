@@ -6,7 +6,7 @@
   --line-strong: rgba(206, 220, 245, 0.22);
   --paper: #e9eef6;
   --muted: #9ba9c0;
-  --dim: #6d7c96;
+  --dim: #8795ad;
   --amber: #f5b53f;
   --amber-deep: #d99722;
   --siren: #ff5b4f;
@@ -57,6 +57,11 @@ button { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 4px; }
 
 .wrap { width: min(var(--wrap), 100% - 48px); margin-inline: auto; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
 
 .skip {
   position: absolute; left: 12px; top: -60px; z-index: 200;
@@ -390,6 +395,8 @@ button { font: inherit; color: inherit; }
 .audit-form input:focus, .audit-form textarea:focus { outline: none; border-color: var(--amber); box-shadow: 0 0 0 3px rgba(245, 181, 63, 0.2); }
 .audit-form .btn-night { background: var(--amber); color: var(--night); margin-top: 6px; }
 .audit-form .btn-night:hover { background: #ffc452; }
+.audit-form .btn-night:disabled { opacity: 0.7; cursor: progress; transform: none; }
+.form-error { margin: 0; padding: 12px 14px; border-radius: 10px; background: rgba(255, 91, 79, 0.1); border: 1px solid rgba(255, 91, 79, 0.45); color: #ffc3be; font-size: 15px; }
 .audit-sent { align-items: flex-start; animation: cardIn 0.45s var(--ease) both; }
 .audit-sent h3 { margin: 6px 0 0; font-family: var(--display); font-size: 36px; font-weight: 800; line-height: 1; }
 .audit-sent p { margin: 0; color: var(--muted); }

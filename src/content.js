@@ -4,6 +4,8 @@ export const contact = {
   email: "agha@qacops.com",
   site: "qacops.com",
   onDuty: "Agha Tayyab",
+  // The audit form posts here. The scan server (scan.qacops.com) sends the emails.
+  endpoint: import.meta.env.VITE_CONTACT_ENDPOINT || "https://scan.qacops.com/api/contact",
 };
 
 export const hero = {
